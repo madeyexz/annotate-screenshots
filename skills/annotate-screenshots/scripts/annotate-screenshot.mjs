@@ -5,7 +5,7 @@ import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const DEFAULT_ACCENT = "#C96542";
+const DEFAULT_ACCENT = "#FF1F1F";
 
 const EXAMPLE = {
   annotations: [

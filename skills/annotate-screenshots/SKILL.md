@@ -90,7 +90,7 @@ node /absolute/path/to/annotate-screenshots/scripts/annotate-screenshot.mjs --pr
 
 ## Visual Rules
 
-- Default to the session-derived palette: charcoal `#292522`, terracotta `#C96542`, white, and warm gray `#D9D4CF`.
+- Use bright red `#FF1F1F` for annotation outlines, labels, arrows, and callout targets.
 - Use one accent color across a comparison pair.
 - Keep provenance outside the image unless a compact callout is itself part of the requested evidence.
 - Prefer one primary outline and at most one supporting callout per image.
