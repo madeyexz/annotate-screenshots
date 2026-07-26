@@ -1,10 +1,4 @@
 {
-  "header": {
-    "height": 96,
-    "badge": "BROWSER CAPTURE · OPENAI",
-    "title": "Live public page · openai.com",
-    "subtitle": "Captured at 1280 × 720 on July 26, 2026; annotations were added after capture."
-  },
   "annotations": [
     {
       "type": "rect",

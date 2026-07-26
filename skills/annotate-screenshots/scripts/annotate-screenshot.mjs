@@ -5,15 +5,9 @@ import { mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+const DEFAULT_ACCENT = "#C96542";
+
 const EXAMPLE = {
-  header: {
-    height: 96,
-    background: "#292522",
-    accent: "#C96542",
-    badge: "AFTER · PR",
-    title: "Actual localhost /admin/analytics",
-    subtitle: "The real route now includes per-post audience analytics.",
-  },
   annotations: [
     {
       type: "rect",
@@ -52,7 +46,7 @@ function usage() {
   bun annotate-screenshot.mjs --input raw.png --output annotated.jpg --spec annotation.json
   bun annotate-screenshot.mjs --print-example
 
-Coordinates are relative to the raw screenshot. The header offset is applied automatically.`;
+Coordinates are relative to the raw screenshot. Output dimensions match the input.`;
 }
 
 function parseArgs(argv) {
@@ -118,9 +112,9 @@ function text(svgParts, x, y, value, attributes = "") {
   );
 }
 
-function renderRect(svgParts, annotation, headerHeight, accent) {
+function renderRect(svgParts, annotation, accent) {
   const x = finiteNumber(annotation.x, "rect.x");
-  const y = headerHeight + finiteNumber(annotation.y, "rect.y");
+  const y = finiteNumber(annotation.y, "rect.y");
   const width = finiteNumber(annotation.width, "rect.width");
   const height = finiteNumber(annotation.height, "rect.height");
   const color = annotation.color ?? accent;
@@ -145,7 +139,7 @@ function renderRect(svgParts, annotation, headerHeight, accent) {
     annotation.labelPosition === "top-left"
       ? x + 18
       : x + width - widthOfPill - 18;
-  const top = Math.max(headerHeight + 4, y - 21);
+  const top = Math.max(4, y - 21);
   svgParts.push(
     `<rect x="${left}" y="${top}" width="${widthOfPill}" height="30" rx="15" fill="${escapeXml(color)}"/>`,
   );
@@ -158,11 +152,9 @@ function renderRect(svgParts, annotation, headerHeight, accent) {
   );
 }
 
-function renderArrow(svgParts, annotation, headerHeight, accent, markerId) {
-  const [fromX, fromYRaw] = point(annotation.from, "arrow.from");
-  const [toX, toYRaw] = point(annotation.to, "arrow.to");
-  const fromY = headerHeight + fromYRaw;
-  const toY = headerHeight + toYRaw;
+function renderArrow(svgParts, annotation, accent, markerId) {
+  const [fromX, fromY] = point(annotation.from, "arrow.from");
+  const [toX, toY] = point(annotation.to, "arrow.to");
   const bend = finiteNumber(annotation.bend ?? 0, "arrow.bend");
   const color = annotation.color ?? accent;
   const strokeWidth = finiteNumber(annotation.strokeWidth ?? 4, "arrow.strokeWidth");
@@ -187,9 +179,9 @@ function calloutHeight(annotation) {
   );
 }
 
-function renderCallout(svgParts, annotation, headerHeight, accent, markerId) {
+function renderCallout(svgParts, annotation, accent, markerId) {
   const x = finiteNumber(annotation.x, "callout.x");
-  const y = headerHeight + finiteNumber(annotation.y, "callout.y");
+  const y = finiteNumber(annotation.y, "callout.y");
   const width = finiteNumber(annotation.width, "callout.width");
   const height = calloutHeight(annotation);
   const background = annotation.background ?? "#292522";
@@ -230,8 +222,7 @@ function renderCallout(svgParts, annotation, headerHeight, accent, markerId) {
 
   if (!annotation.target) return;
 
-  const [targetX, targetYRaw] = point(annotation.target, "callout.target");
-  const targetY = headerHeight + targetYRaw;
+  const [targetX, targetY] = point(annotation.target, "callout.target");
   const startX = targetX >= x + width / 2 ? x + width : x;
   const startY = y + height / 2;
   const bend = finiteNumber(annotation.bend ?? 0, "callout.bend");
@@ -248,72 +239,31 @@ function renderCallout(svgParts, annotation, headerHeight, accent, markerId) {
 }
 
 function buildSvg(width, rawHeight, spec) {
-  const header = spec.header === false ? { height: 0 } : (spec.header ?? {});
-  const headerHeight = finiteNumber(header.height ?? 96, "header.height");
-  const canvasHeight = rawHeight + headerHeight;
-  const background = header.background ?? "#292522";
-  const accent = header.accent ?? "#C96542";
+  const accent = DEFAULT_ACCENT;
   const markerId = "annotation-arrow";
   const svgParts = [
-    `<svg width="${width}" height="${canvasHeight}" xmlns="http://www.w3.org/2000/svg">`,
+    `<svg width="${width}" height="${rawHeight}" xmlns="http://www.w3.org/2000/svg">`,
     `<defs><marker id="${markerId}" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="${escapeXml(accent)}"/></marker></defs>`,
   ];
 
-  if (headerHeight > 0) {
-    svgParts.push(
-      `<rect width="${width}" height="${headerHeight}" fill="${escapeXml(background)}"/>`,
-    );
-    const badge = header.badge ?? "ANNOTATED";
-    const badgeWidth = pillWidth(badge);
-    const badgeY = Math.max(12, (headerHeight - 34) / 2 - 4);
-    svgParts.push(
-      `<rect x="28" y="${badgeY}" width="${badgeWidth}" height="34" rx="17" fill="${escapeXml(accent)}"/>`,
-    );
-    text(
-      svgParts,
-      28 + badgeWidth / 2,
-      badgeY + 22,
-      badge,
-      `text-anchor="middle" fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" letter-spacing="0.7"`,
-    );
-    const copyX = 28 + badgeWidth + 24;
-    text(
-      svgParts,
-      copyX,
-      Math.max(30, headerHeight / 2 - 12),
-      header.title ?? "",
-      `fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="18" font-weight="650"`,
-    );
-    text(
-      svgParts,
-      copyX,
-      Math.max(57, headerHeight / 2 + 15),
-      header.subtitle ?? "",
-      `fill="${escapeXml(header.muted ?? "#D9D4CF")}" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="14"`,
-    );
-    svgParts.push(
-      `<rect x="0" y="${Math.max(0, headerHeight - 3)}" width="${width}" height="3" fill="${escapeXml(accent)}"/>`,
-    );
-  }
-
   for (const annotation of spec.annotations ?? []) {
     if (annotation.type === "rect") {
-      renderRect(svgParts, annotation, headerHeight, accent);
+      renderRect(svgParts, annotation, accent);
       continue;
     }
     if (annotation.type === "arrow") {
-      renderArrow(svgParts, annotation, headerHeight, accent, markerId);
+      renderArrow(svgParts, annotation, accent, markerId);
       continue;
     }
     if (annotation.type === "callout") {
-      renderCallout(svgParts, annotation, headerHeight, accent, markerId);
+      renderCallout(svgParts, annotation, accent, markerId);
       continue;
     }
     throw new Error(`Unsupported annotation type: ${annotation.type}`);
   }
 
   svgParts.push("</svg>");
-  return { svg: svgParts.join("\n"), headerHeight };
+  return svgParts.join("\n");
 }
 
 function ancestorDirectories(start) {
@@ -373,23 +323,22 @@ async function main() {
   const inputPath = path.resolve(args.input);
   const outputPath = path.resolve(args.output);
   const spec = JSON.parse(await readFile(path.resolve(args.spec), "utf8"));
+  if (Object.hasOwn(spec, "header")) {
+    throw new Error(
+      'The "header" field is no longer supported. Keep provenance in the surrounding PR or report copy.',
+    );
+  }
   const sharp = await loadSharp(inputPath);
   const metadata = await sharp(inputPath).metadata();
   if (!metadata.width || !metadata.height) {
     throw new Error(`Could not read image dimensions from ${inputPath}`);
   }
-  const { svg, headerHeight } = buildSvg(metadata.width, metadata.height, spec);
+  const svg = buildSvg(metadata.width, metadata.height, spec);
   await mkdir(path.dirname(outputPath), { recursive: true });
 
-  let pipeline = sharp(inputPath)
-    .extend({
-      top: headerHeight,
-      bottom: 0,
-      left: 0,
-      right: 0,
-      background: spec.header?.background ?? "#292522",
-    })
-    .composite([{ input: Buffer.from(svg), top: 0, left: 0 }]);
+  let pipeline = sharp(inputPath).composite([
+    { input: Buffer.from(svg), top: 0, left: 0 },
+  ]);
 
   const extension = path.extname(outputPath).toLowerCase();
   if (extension === ".jpg" || extension === ".jpeg") {
@@ -416,7 +365,7 @@ async function main() {
         raw: { width: metadata.width, height: metadata.height },
         final: {
           width: metadata.width,
-          height: metadata.height + headerHeight,
+          height: metadata.height,
         },
       },
       null,

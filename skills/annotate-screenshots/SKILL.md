@@ -1,13 +1,13 @@
 ---
 name: annotate-screenshots
-description: Capture or transform screenshots into honest, deterministic annotated images using matched raw PNGs plus Sharp-composited SVG headers, labels, outlines, arrows, and callouts. Use for PR before/after comparisons, product-change evidence, UI walkthroughs, bug reports, or requests to highlight differences in screenshots without generative image editing.
+description: Capture or transform screenshots into honest, deterministic annotated images using matched raw PNGs plus Sharp-composited SVG labels, outlines, arrows, and callouts. Use for PR before/after comparisons, product-change evidence, UI walkthroughs, bug reports, or requests to highlight differences in screenshots without generative image editing.
 ---
 
 # Annotate Screenshots
 
 Create annotation layers without redrawing the underlying product UI. Capture an unmodified screenshot first, then build one SVG overlay and composite it with Sharp.
 
-Never inject annotation HTML, CSS, SVG, or DOM nodes into the page being captured. Use browser tooling only to reach, frame, and capture the raw state. Render every header, label, outline, arrow, and callout afterward with `scripts/annotate-screenshot.mjs`.
+Never inject annotation HTML, CSS, SVG, or DOM nodes into the page being captured. Use browser tooling only to reach, frame, and capture the raw state. Render every label, outline, arrow, and callout afterward with `scripts/annotate-screenshot.mjs`.
 
 ## Workflow
 
@@ -24,13 +24,14 @@ Never inject annotation HTML, CSS, SVG, or DOM nodes into the page being capture
    - Frame the changed area consistently. Use element bounds when browser tooling exposes them.
    - Record the capture facts needed for the PR or report: route, source state, viewport, and any fixture/data caveat.
 4. Annotate after capture with Sharp + SVG only.
-   - Add a header above the screenshot so explanatory copy does not cover the product.
+   - Keep the original screenshot dimensions. Do not add a header or expand the canvas.
+   - Put route, source-state, and fixture provenance in the surrounding PR or report copy.
    - Use a dashed outline for an area with no prior equivalent.
    - Use a solid outline for a new or changed region.
    - Use arrows or compact callouts only when the outline alone is ambiguous.
    - Keep labels factual and short. Describe what changed, not whether it is “better.”
 5. Render with `scripts/annotate-screenshot.mjs`.
-6. Inspect every final image at full size and verify dimensions, legibility, crop, and provenance wording.
+6. Inspect every final image at full size and verify dimensions, legibility, crop, and surrounding provenance wording.
 7. If publishing to a PR, confirm the pushed image URLs resolve and say whether each image is a real route or a fixture.
 
 ## Render
@@ -50,18 +51,12 @@ node /absolute/path/to/annotate-screenshots/scripts/annotate-screenshot.mjs \
   --spec /absolute/path/to/annotation.json
 ```
 
-Coordinates in the spec are relative to the raw screenshot. The renderer adds the header offset automatically.
+Coordinates in the spec are relative to the raw screenshot, and the output dimensions match the input.
 
 Use a spec like:
 
 ```json
 {
-  "header": {
-    "height": 96,
-    "badge": "AFTER · PR",
-    "title": "Actual localhost /admin/analytics",
-    "subtitle": "The real route now includes per-post audience analytics."
-  },
   "annotations": [
     {
       "type": "rect",
@@ -79,7 +74,7 @@ Use a spec like:
 }
 ```
 
-For a before image, change the badge, use `"style": "dashed"`, and label the absent region `"NO PRIOR EQUIVALENT"`.
+For a before image, use `"style": "dashed"` and label the absent region `"NO PRIOR EQUIVALENT"`.
 
 Supported annotation types:
 
@@ -97,7 +92,7 @@ node /absolute/path/to/annotate-screenshots/scripts/annotate-screenshot.mjs --pr
 
 - Default to the session-derived palette: charcoal `#292522`, terracotta `#C96542`, white, and warm gray `#D9D4CF`.
 - Use one accent color across a comparison pair.
-- Keep the header title tied to provenance, such as `Actual localhost /route` or `Focused component fixture`.
+- Keep provenance outside the image unless a compact callout is itself part of the requested evidence.
 - Prefer one primary outline and at most one supporting callout per image.
 - Keep a before/after pair at identical final dimensions.
 - Export JPEG at quality 92 with 4:4:4 chroma for compact PR assets. Export PNG when exact pixel preservation matters.
@@ -106,12 +101,12 @@ node /absolute/path/to/annotate-screenshots/scripts/annotate-screenshot.mjs --pr
 
 Before delivery:
 
-- Confirm the raw image dimensions and the final height: `raw height + header height`.
+- Confirm the raw and final image dimensions match.
 - Confirm before and after dimensions match.
 - Open the images at original detail; do not rely on thumbnails.
 - Confirm annotations do not hide the changed UI.
 - Confirm the raw route pixels came from the stated source.
-- Confirm fixture or representative-data caveats appear both in the image header and surrounding PR/report copy.
+- Confirm fixture or representative-data caveats appear in the surrounding PR or report copy.
 - Keep raw PNGs until the final assets and remote URLs have been verified.
 
 Do not use generative image editing for this workflow. If the request requires altering the screenshot’s product pixels rather than adding evidence overlays, stop and clarify that the result would no longer be a faithful capture.

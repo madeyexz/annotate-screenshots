@@ -4,14 +4,15 @@ An agent skill for adding honest, deterministic annotations to screenshots with
 [Sharp](https://sharp.pixelplumbing.com/) and SVG.
 
 It captures or accepts an unmodified screenshot, builds a separate SVG evidence
-layer, and composites the two after capture. It never injects annotation markup
-into the page and never uses generative image editing.
+layer, and composites the two after capture without changing the canvas size. It
+never injects annotation markup into the page and never uses generative image
+editing.
 
 ## Showcase
 
 These examples are live public pages captured in the Browser at 1280 × 720 on
 July 26, 2026. The raw PNGs preserve the page pixels exactly as captured; the
-headers and outlines were composited afterward with Sharp + SVG. Public-page
+outlines and labels were composited afterward with Sharp + SVG. Public-page
 content may change after the capture date.
 
 ### Reddit
@@ -83,8 +84,8 @@ npx skills add madeyexz/annotate-screenshots -g -a codex -a claude-code
               │
               │        ┌────────────────────────────┐
               │        │ JSON annotation spec       │
-              │        │ header, rectangles, arrows,│
-              │        │ labels, and callouts       │
+              │        │ outlines, arrows, labels,  │
+              │        │ and callouts               │
               │        └─────────────┬──────────────┘
               │                      │
               │                      ▼
@@ -133,10 +134,10 @@ The skill guides the agent to:
 - Dashed rectangle: an area with no prior equivalent.
 - Arrow: a precise relationship or target.
 - Callout: a short factual explanation.
-- Header: source state, route, and comparison context.
 
-Coordinates are relative to the raw screenshot. The renderer automatically adds
-the header offset.
+Coordinates are relative to the raw screenshot. The annotated output keeps the
+same dimensions as the raw capture. Record source state, route, and comparison
+context in the surrounding PR or report copy.
 
 ## Renderer runtime
 
@@ -175,12 +176,6 @@ Example:
 
 ```json
 {
-  "header": {
-    "height": 96,
-    "badge": "AFTER · PR",
-    "title": "Actual localhost /admin/analytics",
-    "subtitle": "The real route now includes per-post audience analytics."
-  },
   "annotations": [
     {
       "type": "rect",
