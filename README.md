@@ -9,18 +9,36 @@ into the page and never uses generative image editing.
 
 ## Showcase
 
-This matched pair uses a neutral component fixture with no private product data.
-The source UI is rendered first; every label and outline is added afterward by
-the skill's Sharp + SVG renderer. Reproduce both images with
-`node showcase/generate-showcase.mjs`.
+These examples are live public pages captured in the Browser at 1280 × 720 on
+July 26, 2026. The raw PNGs preserve the page pixels exactly as captured; the
+headers and outlines were composited afterward with Sharp + SVG. Public-page
+content may change after the capture date.
 
-### Before
+### Reddit
 
-![Before: a release-review fixture with a dashed no-prior-equivalent region](showcase/before.jpg)
+![Reddit r/web_design with its community highlights outlined](showcase/reddit-web-design.jpg)
 
-### After
+Source: [reddit.com/r/web_design](https://www.reddit.com/r/web_design/)
 
-![After: the same fixture with a solid outline around the new impact summary](showcase/after.jpg)
+### OpenAI
+
+![OpenAI homepage with its ChatGPT entry point outlined](showcase/openai-homepage.jpg)
+
+Source: [openai.com](https://openai.com/)
+
+Reproduce the annotations:
+
+```bash
+node skills/annotate-screenshots/scripts/annotate-screenshot.mjs \
+  --input showcase/raw/reddit-web-design.png \
+  --output showcase/reddit-web-design.jpg \
+  --spec showcase/reddit-web-design.json
+
+node skills/annotate-screenshots/scripts/annotate-screenshot.mjs \
+  --input showcase/raw/openai-homepage.png \
+  --output showcase/openai-homepage.jpg \
+  --spec showcase/openai-homepage.json
+```
 
 ## Install
 
@@ -184,9 +202,13 @@ Example:
 
 ```text
 showcase/
-├── before.jpg
-├── after.jpg
-└── generate-showcase.mjs
+├── openai-homepage.jpg
+├── openai-homepage.json
+├── reddit-web-design.jpg
+├── reddit-web-design.json
+└── raw/
+    ├── openai-homepage.png
+    └── reddit-web-design.png
 
 skills/
 └── annotate-screenshots/
