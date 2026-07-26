@@ -1,4 +1,4 @@
-# Annotate Screenshots
+# Annotate Screenshots Skill
 
 An agent skill for adding honest, deterministic annotations to screenshots with
 [Sharp](https://sharp.pixelplumbing.com/) and SVG.
