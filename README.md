@@ -7,6 +7,21 @@ It captures or accepts an unmodified screenshot, builds a separate SVG evidence
 layer, and composites the two after capture. It never injects annotation markup
 into the page and never uses generative image editing.
 
+## Showcase
+
+This matched pair uses a neutral component fixture with no private product data.
+The source UI is rendered first; every label and outline is added afterward by
+the skill's Sharp + SVG renderer. Reproduce both images with
+`node showcase/generate-showcase.mjs`.
+
+### Before
+
+![Before: a release-review fixture with a dashed no-prior-equivalent region](showcase/before.jpg)
+
+### After
+
+![After: the same fixture with a solid outline around the new impact summary](showcase/after.jpg)
+
 ## Install
 
 Install with the [Vercel skills CLI](https://github.com/vercel-labs/skills):
@@ -168,6 +183,11 @@ Example:
 ## Repository layout
 
 ```text
+showcase/
+├── before.jpg
+├── after.jpg
+└── generate-showcase.mjs
+
 skills/
 └── annotate-screenshots/
     ├── SKILL.md
