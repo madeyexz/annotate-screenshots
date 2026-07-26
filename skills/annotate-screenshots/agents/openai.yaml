@@ -1,0 +1,4 @@
+interface:
+  display_name: "Annotate Screenshots"
+  short_description: "Add honest, deterministic screenshot callouts"
+  default_prompt: "Use $annotate-screenshots to add clear callouts to these matched before-and-after screenshots."
